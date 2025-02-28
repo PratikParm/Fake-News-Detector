@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from lime.lime_text import LimeTextExplainer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from newspaper import Article
@@ -70,7 +70,7 @@ def explain_prediction(text):
 # API Route: Predict Fake or Real
 @app.route("/", methods=["GET"])
 def home():
-    return "Fake News Detector API is running!", 200
+    return render_template("index.html")
 
 @app.route("/predict", methods=["POST"])
 def predict():

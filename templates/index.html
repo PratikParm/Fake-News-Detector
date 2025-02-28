@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            text-align: center; 
+            margin: 50px; 
+            background: #f4f4f4; 
+        }
+    
+        h2 { 
+            color: #333; 
+        }
+    
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+    
+        textarea { 
+            width: 100%; 
+            height: 120px; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            font-size: 14px;
+            resize: none;
+        }
+    
+        button { 
+            background: #007BFF; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border-radius: 5px; 
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+    
+        button:hover { 
+            background: #0056b3; 
+        }
+    
+        .loading { 
+            display: none; 
+            font-weight: bold; 
+            color: #007BFF; 
+            margin-top: 10px;
+        }
+    
+        .result { 
+            margin-top: 20px; 
+            font-size: 20px; 
+            font-weight: bold; 
+        }
+    
+        .explain { 
+            display: none; 
+            margin-top: 15px;
+        }
+    
+        .explanation { 
+            margin-top: 15px; 
+            font-size: 14px; 
+            background: #f9f9f9; 
+            padding: 10px; 
+            border-radius: 5px;
+            text-align: left;
+        }
+    </style>
+    
+</head>
+<body>
+    <h2>Fake News Detector</h2>
+    <textarea id="news-text" placeholder="Paste article text or URL here..."></textarea><br>
+    <button id="predict-btn">Predict</button>
+    <div class="loading">Processing... Please wait.</div>
+    <div class="result"></div>
+    <button id="explain-btn" class="explain">Explain Prediction</button>
+    <div class="explanation"></div>
+
+    <script>
+        $(document).ready(function(){
+            $("#predict-btn").click(function(){
+                let text = $("#news-text").val().trim();
+                if (!text) { alert("Please enter text or URL."); return; }
+
+                $(".loading").show();
+                $(".result").text("");
+                $(".explain").hide();
+                $(".explanation").text("");
+
+                $.ajax({
+                    url: "https://fake-news-detector-d5ig.onrender.com/predict",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ text: text }),
+                    success: function(response) {
+                        $(".loading").hide();
+                        $(".result").text("Prediction: " + response.prediction);
+                        $(".explain").show();
+                    },
+                    error: function() {
+                        $(".loading").hide();
+                        $(".result").text("Error occurred. Try again.");
+                    }
+                });
+            });
+
+            $("#explain-btn").click(function(){
+                let text = $("#news-text").val().trim();
+                $(".explanation").text("Generating explanation... Please wait.");
+
+                $.ajax({
+                    url: "https://fake-news-detector-d5ig.onrender.com/explain",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ text: text }),
+                    success: function(response) {
+                        $(".explanation").html("<strong>Explanation:</strong> <br>" + response.explanation.join("<br>"));
+                    },
+                    error: function() {
+                        $(".explanation").text("Error generating explanation.");
+                    }
+                });
+            });
+        });
+    
+        function isValidURL(string) {
+            const pattern = new RegExp('^(https?:\\/\\/)?'+ // Protocol
+                '((([a-zA-Z0-9$_.+!*\'(),;-]+\\.)+[a-zA-Z]{2,})|' + // Domain name
+                '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR IPv4
+                '(\\:\\d+)?(\\/[-a-zA-Z0-9()@:%_+.~#?&/=]*)?$', 'i'); // Port & path
+            return pattern.test(string);
+        }
+
+        function countWords(text) {
+            return text.trim().split(/\s+/).length;
+        }
+
+        function predict() {
+            var inputText = document.getElementById("newsText").value.trim();
+            var loading = document.getElementById("loading");
+            var resultDiv = document.getElementById("result");
+            var explainButton = document.getElementById("explainButton");
+
+            resultDiv.innerHTML = "";
+            explainButton.style.display = "none";
+
+            // Input validation
+            if (!isValidURL(inputText) && countWords(inputText) < 50) {
+                alert("Please enter a valid URL or a text with at least 50 words.");
+                return;
+            }
+
+            loading.style.display = "block";
+
+            fetch("/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: inputText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = "none";
+                resultDiv.innerHTML = "Prediction: " + data.prediction;
+                explainButton.style.display = "inline-block";
+            })
+            .catch(error => {
+                loading.style.display = "none";
+                resultDiv.innerHTML = "Error: " + error.message;
+            });
+        }
+
+    </script>
+</body>
+</html>
