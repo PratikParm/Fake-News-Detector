@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template
-from lime.lime_text import LimeTextExplainer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from newspaper import Article
 
