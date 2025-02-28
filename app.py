@@ -1,3 +1,4 @@
+import os
 import pickle
 import joblib
 import numpy as np
@@ -6,6 +7,7 @@ from pathlib import Path
 from flask import Flask, request, jsonify
 from lime.lime_text import LimeTextExplainer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from newspaper import Article
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -38,6 +40,16 @@ vectorizer = get_vectorizer()
 # Initialize LIME Explainer
 explainer = LimeTextExplainer(class_names=["Real", "Fake"])
 
+# Function to extract text from URL
+def extract_text_from_url(url):
+    try:
+        article = Article(url)
+        article.download()
+        article.parse()
+        return article.text
+    except Exception as e:
+        return None
+
 # Model inference function
 def predict_text(text):
     text_vector = vectorizer.transform([text]).toarray()  # Convert text to TF-IDF feature vector
@@ -61,9 +73,12 @@ def predict():
     try:
         data = request.get_json()
         text = data.get("text", "")
+        url = data.get("url", "")
 
-        if not text:
-            return jsonify({"error": "No text provided"}), 400
+        if url:  # If a URL is provided, extract article text
+            text = extract_text_from_url(url)
+            if not text:
+                return jsonify({"error": "Failed to extract text from URL"}), 400
 
         text_vector = vectorizer.transform([text]).toarray()
         prediction = model.predict(text_vector)
@@ -83,9 +98,15 @@ def explain():
     try:
         data = request.get_json()
         text = data.get("text", "")
+        url = data.get("url", "")
 
-        if not text:
-            return jsonify({"error": "No text provided"}), 400
+        if not url and not text:
+            return jsonify({"error": "No text or URL provided"}), 400
+
+        if url:  # If a URL is provided, extract article text
+            text = extract_text_from_url(url)
+            if not text:
+                return jsonify({"error": "Failed to extract text from URL"}), 400
 
         explanation = explain_prediction(text)
 
