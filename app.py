@@ -68,6 +68,10 @@ def explain_prediction(text):
     return explanation.as_list()
 
 # API Route: Predict Fake or Real
+@app.route("/", methods=["GET"])
+def home():
+    return "Fake News Detector API is running!", 200
+
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
