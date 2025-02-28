@@ -48,13 +48,13 @@ def extract_text_from_url(url):
         article.parse()
         return article.text
     except Exception as e:
+        print(e)
         return None
 
 # Model inference function
 def predict_text(text):
     text_vector = vectorizer.transform([text]).toarray()  # Convert text to TF-IDF feature vector
     prediction = model.predict(text_vector)  # Get single prediction
-    print(prediction)
     return int(prediction)  # Convert to integer (0 = Real, 1 = Fake)
 
 # Function to explain prediction using LIME
@@ -82,42 +82,20 @@ def predict():
         if url:  # If a URL is provided, extract article text
             text = extract_text_from_url(url)
             if not text:
-                return jsonify({"error": "Failed to extract text from URL"}), 400
+                print("Failed to extract text from URL")
+                return jsonify({"error": "Failed to extract text from URL"}), 200
 
         text_vector = vectorizer.transform([text]).toarray()
         prediction = model.predict(text_vector)
 
         if prediction == 1:
-            return jsonify({"prediction": "Fake"}), 200
+            return jsonify({"prediction": "Fake", "text": text}), 200
         else:
-            return jsonify({"prediction": "Real"}), 200
+            return jsonify({"prediction": "Real", "text": text}), 200
 
     except Exception as e:
         print(str(e))
-        return jsonify({"error": str(e)}), 500
-
-# API Route: Explain Prediction
-@app.route("/explain", methods=["POST"])
-def explain():
-    try:
-        data = request.get_json()
-        text = data.get("text", "")
-        url = data.get("url", "")
-
-        if not url and not text:
-            return jsonify({"error": "No text or URL provided"}), 400
-
-        if url:  # If a URL is provided, extract article text
-            text = extract_text_from_url(url)
-            if not text:
-                return jsonify({"error": "Failed to extract text from URL"}), 400
-
-        explanation = explain_prediction(text)
-
-        return jsonify({"explanation": explanation}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 200
 
 # Run Flask App
 if __name__ == "__main__":
