@@ -36,9 +36,6 @@ def get_vectorizer():
 
 vectorizer = get_vectorizer()
 
-# Initialize LIME Explainer
-explainer = LimeTextExplainer(class_names=["Real", "Fake"])
-
 # Function to extract text from URL
 def extract_text_from_url(url):
     try:
