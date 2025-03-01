@@ -101,9 +101,9 @@ def predict():
         prediction = model.predict(text_vector)
 
         if prediction == 1:
-            return jsonify({"prediction": "Fake", "text": text}), 200
+            return jsonify({"prediction": "Fake"}), 200
         else:
-            return jsonify({"prediction": "Real", "text": text}), 200
+            return jsonify({"prediction": "Real"}), 200
 
     except Exception as e:
         print(str(e))
