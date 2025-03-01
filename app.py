@@ -1,6 +1,7 @@
 import os
 import pickle
 import joblib
+import gdown
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -18,8 +19,23 @@ with open(model_path, "rb") as f:
     model = joblib.load(f)
 
 def get_vectorizer():
-    fake_df = pd.read_csv("src/data/Fake.csv")
-    real_df = pd.read_csv("src/data/True.csv")
+    real_data_file_id = '1bE9r5OQOzP-b0ikgcbKYRidZGkqOPn3p'
+    fake_data_file_id = '1zLwG0E6mYUj67GcEOUBfPsLjDkzxOJ1M'
+    def get_fake_news_data():
+        data_path = 'Fake.csv'
+        url = 'https://drive.google.com/uc?id=' + fake_data_file_id
+        gdown.download(url, data_path, quiet=False)
+    
+    def get_real_news_data():
+        data_path = 'True.csv'
+        url = 'https://drive.google.com/uc?id=' + real_data_file_id
+        gdown.download(url, data_path, quiet=False)
+
+    get_fake_news_data()
+    get_real_news_data()
+
+    fake_df = pd.read_csv("Fake.csv")
+    real_df = pd.read_csv("True.csv")
 
     df = pd.concat([fake_df, real_df], axis=0)
     df = df.drop_duplicates().reset_index(drop=True)
